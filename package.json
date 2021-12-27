@@ -7,6 +7,7 @@
   "author": "Mehran Shahidi",
   "license": "MIT",
   "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "ts-node-dev --no-notify --respawn --transpile-only src/index",
     "generate:nexus": "ts-node --transpile-only src/schema"
   },
