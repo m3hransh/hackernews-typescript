@@ -28,7 +28,7 @@ export const LinkQuery = extendType({
   definition(t) {
     t.nonNull.list.nonNull.field('feed', {
       type: 'Link',
-      resolve(parent, args, context, info) {
+      resolve(_root, _args, _ctx, _info) {
         return links
       },
     })
@@ -45,7 +45,7 @@ export const LinkMutation = extendType({
         url: nonNull(stringArg()),
       },
 
-      resolve(parent, args, context) {
+      resolve(_root, args, _ctx) {
         const { description, url } = args
 
         const idCount = links[links.length -1].id + 1
@@ -65,7 +65,7 @@ export const LinkMutation = extendType({
         url: stringArg(),
         description: stringArg(),
       },
-      resolve(parent, args, context) {
+      resolve(_root, args, _ctx) {
         const { id, description, url } = args
         
         const linkIndex = links.findIndex(l => l.id === id)
@@ -90,7 +90,7 @@ export const LinkMutation = extendType({
       args: {
         id: nonNull(intArg()),
       },
-      resolve(parent, args, context) {
+      resolve(_root, args, _ctx) {
         const { id } = args
 
         const linkIndex = links.findIndex(l => l.id === id)
@@ -98,6 +98,8 @@ export const LinkMutation = extendType({
         if (linkIndex === -1){
           throw new Error(`Could not find the post with id ${id}`)
         }
+
+        // copy the object before deleting
         const deletedItem = {
           ...links[linkIndex]
         }
