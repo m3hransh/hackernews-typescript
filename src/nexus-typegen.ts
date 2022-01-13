@@ -4,7 +4,7 @@
  */
 
 
-
+import type { Context } from "./context"
 
 
 
@@ -89,9 +89,9 @@ export interface NexusGenArgTypes {
       url: string; // String!
     }
     updateLink: { // args
-      description?: string | null; // String
+      description: string; // String!
       id: number; // Int!
-      url?: string | null; // String
+      url: string; // String!
     }
   }
 }
@@ -127,7 +127,7 @@ export type NexusGenFeaturesConfig = {
 }
 
 export interface NexusGenTypes {
-  context: any;
+  context: Context;
   inputTypes: NexusGenInputs;
   rootTypes: NexusGenRootTypes;
   inputTypeShapes: NexusGenInputs & NexusGenEnums & NexusGenScalars;

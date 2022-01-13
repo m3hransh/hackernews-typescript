@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client'
 import { extendType, objectType, nonNull, stringArg, intArg } from 'nexus'
 import { NexusGenObjects } from '../nexus-typegen'
 
@@ -10,25 +11,13 @@ export const Link = objectType({
   },
 })
 
-const links: NexusGenObjects['Link'][] = [
-  {
-    id: 1,
-    url: 'www.howtographql.com',
-    description: 'Fullstack tutorial for GraphQL',
-  },
-  {
-    id: 2,
-    url: 'graphqo.org',
-    description: 'GraphQL official website',
-  },
-]
-
 export const LinkQuery = extendType({
   type: 'Query',
   definition(t) {
     t.nonNull.list.nonNull.field('feed', {
       type: 'Link',
-      resolve(_root, _args, _ctx, _info) {
+      resolve(_root, _args, ctx, _info) {
+        const links = ctx.prisma.link.findMany()
         return links
       },
     })
@@ -45,67 +34,80 @@ export const LinkMutation = extendType({
         url: nonNull(stringArg()),
       },
 
-      resolve(_root, args, _ctx) {
+      resolve(_root, args, ctx) {
         const { description, url } = args
 
-        const idCount = links[links.length -1].id + 1
-        const link = {
-          id: idCount,
-          description: description,
-          url: url,
-        }
-        links.push(link)
-        return link
+        const newLink = ctx.prisma.link.create({
+          data: {
+            description,
+            url,
+          },
+        })
+
+        return newLink
       },
-    });
+    })
     t.nonNull.field('updateLink', {
-      type:'Link',
-      args: {
-        id: nonNull(intArg()),
-        url: stringArg(),
-        description: stringArg(),
-      },
-      resolve(_root, args, _ctx) {
-        const { id, description, url } = args
-        
-        const linkIndex = links.findIndex(l => l.id === id)
-        // console.log(linkIndex)
-        // console.log(args)
-        // console.log(links)
-        if (linkIndex === -1){
-          throw new Error(`Could not find the post with id ${id}`)
-        }
-
-        if(description)
-          links[linkIndex].description = description
-        if(url)
-          links[linkIndex].id = id
-         
-        return links[linkIndex]
-
-      }
-    }),
-    t.nonNull.field('deleteLink', {
       type: 'Link',
       args: {
         id: nonNull(intArg()),
+        url: nonNull(stringArg()),
+        description: nonNull(stringArg()),
       },
-      resolve(_root, args, _ctx) {
-        const { id } = args
+      async resolve(_root, args, ctx) {
+        const { id, description, url } = args
 
-        const linkIndex = links.findIndex(l => l.id === id)
+        let updatedLink: NexusGenObjects['Link']
+        try {
+          updatedLink = await ctx.prisma.link.update({
+            where: {
+              id,
+            },
+            data: {
+              description,
+              url,
+            },
+          })
+        } catch (e) {
+          console.log(e)
 
-        if (linkIndex === -1){
-          throw new Error(`Could not find the post with id ${id}`)
+          if (
+            e instanceof Prisma.PrismaClientKnownRequestError &&
+            e.code === 'P2001'
+          )
+            throw new Error(`Could not find the post with id: ${id}`)
+          else throw e
         }
 
-        // copy the object before deleting
-        const deletedItem = {
-          ...links[linkIndex]
-        }
-        links.splice(linkIndex, 1)
-        return deletedItem
-      }
-    })
+        return updatedLink
+      },
+    }),
+      t.nonNull.field('deleteLink', {
+        type: 'Link',
+        args: {
+          id: nonNull(intArg()),
+        },
+        async resolve(_root, args, ctx) {
+          const { id } = args
+          let deletedLink: NexusGenObjects['Link']
+          try {
+            deletedLink = await ctx.prisma.link.delete({
+              where: {
+                id,
+              },
+            })
+          } catch (e) {
+            console.log(e)
+
+            if (
+              e instanceof Prisma.PrismaClientKnownRequestError &&
+              e.code === 'P2001'
+            )
+              throw new Error(`Could not find the post with id: ${id}`)
+            else throw e
+          }
+          return deletedLink
+        },
+      })
   },
 })
