@@ -40,38 +40,35 @@ export const AuthMutation = extendType({
         }
       },
     })
-  t.nonNull.field('login', {
-    type: 'AuthPayload',
-    args: {
-      email: nonNull(stringArg()),
-      password: nonNull(stringArg()),
-    },
-    async resolve(_root, args, ctx) {
-      const user = await ctx.prisma.user.findUnique({
-        where: {
-          email: args.password
+    t.nonNull.field('login', {
+      type: 'AuthPayload',
+      args: {
+        email: nonNull(stringArg()),
+        password: nonNull(stringArg()),
+      },
+      async resolve(_root, args, ctx) {
+        const user = await ctx.prisma.user.findUnique({
+          where: {
+            email: args.email,
+          },
+        })
+
+        if (!user) {
+          throw new Error('No such user found')
         }
-      })
-      
-      if (!user) {
-        throw new Error("No such user found")
-      }
 
-      const valid = await bcrypt.compare(
-        args.password,
-        user.password,
-      )
-      if (!valid) {
-        throw new Error("Invalid password")
-      }
+        const valid = await bcrypt.compare(args.password, user.password)
+        if (!valid) {
+          throw new Error('Invalid password')
+        }
 
-      const token = jwt.sign({ userId: user.id }, APP_SECRET)
+        const token = jwt.sign({ userId: user.id }, APP_SECRET)
 
-      return {
-        token,
-        user,
-      }
-    }
-  })
+        return {
+          token,
+          user,
+        }
+      },
+    })
   },
 })
