@@ -3,14 +3,20 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 async function main() {
-  await prisma.link.create({
-    data: {
-      description: 'Fullstack tutorial for GraphQL',
-      url: 'www.howtographql.com',
-    },
-  })
-  const allLinks = await prisma.link.findMany()
-  console.log(allLinks)
+  // await prisma.user.create({
+  //   data: {
+  //     name: 'Mehran',
+  //     email: 'Mehran@gmail.com',
+  //     password: '123',
+  //   },
+  // })
+  // await prisma.link.updateMany({
+  //   data: {
+  //     postedById: 1,
+  //   },
+  // })
+  const users = await prisma.user.findMany()
+  console.log(users)
 }
 
 main()

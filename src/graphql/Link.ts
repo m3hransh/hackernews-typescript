@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client'
-import { extendType, objectType, nonNull, stringArg, intArg } from 'nexus'
+import { extendType, intArg, nonNull, objectType, stringArg } from 'nexus'
 import { NexusGenObjects } from '../nexus-typegen'
 
 export const Link = objectType({
@@ -8,6 +8,14 @@ export const Link = objectType({
     t.nonNull.int('id')
     t.nonNull.string('description')
     t.nonNull.string('url')
+    t.field('postedBy', {
+      type: 'User',
+      resolve(root, _args, ctx) {
+        return ctx.prisma.link
+          .findUnique({ where: { id: root.id } })
+          .postedBy()
+      },
+    })
   },
 })
 
